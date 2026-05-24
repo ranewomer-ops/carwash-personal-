@@ -1,0 +1,717 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Wash Business Dashboard — Sulaymaniyah</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0D0F0E;
+  --surface: #141716;
+  --surface2: #1B1E1C;
+  --border: #252826;
+  --border2: #2E322F;
+  --green: #22C55E;
+  --green-dim: #16A34A;
+  --red: #EF4444;
+  --amber: #F59E0B;
+  --blue: #3B82F6;
+  --text: #F1F5F2;
+  --muted: #6B7068;
+  --muted2: #4A4E4B;
+  --accent: #A3E635;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  padding: 48px 40px 32px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(163,230,53,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-label::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(26px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  color: var(--text);
+}
+h1 span { color: var(--accent); }
+.header-meta {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.header-meta span { display: flex; align-items: center; gap: 5px; }
+
+/* NAV TABS */
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 16px 40px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  cursor: pointer;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* MAIN CONTENT */
+.content { padding: 32px 40px; }
+.pane { display: none; }
+.pane.active { display: block; }
+
+/* SECTION LABELS */
+.sec-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted2);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: 12px;
+  margin-top: 28px;
+}
+.sec-label:first-child { margin-top: 0; }
+
+/* METRIC CARDS */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.mcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  transition: border-color .2s;
+}
+.mcard:hover { border-color: var(--border2); }
+.mcard .ml { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-family: 'DM Mono', monospace; }
+.mcard .mv { font-size: 22px; font-weight: 600; font-family: 'Syne', sans-serif; letter-spacing: -.02em; }
+.mcard .ms { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* GENERIC CARD */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.card-inner { padding: 20px; }
+
+/* TABLE ROWS */
+.trow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  transition: background .15s;
+}
+.trow:last-child { border-bottom: none; }
+.trow:hover { background: var(--surface2); }
+.trow.total {
+  background: var(--surface2);
+  border-top: 1px solid var(--border2);
+  padding: 14px 20px;
+}
+.trow .name { color: var(--muted); }
+.trow.total .name { color: var(--text); font-weight: 600; font-size: 14px; }
+.trow .val { font-weight: 500; font-family: 'DM Mono', monospace; font-size: 13px; }
+.trow.total .val { font-size: 15px; font-weight: 700; }
+
+/* TWO COLS */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.big-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  text-align: center;
+}
+.big-stat .lbl { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+.big-stat .val { font-family: 'Syne', sans-serif; font-size: 34px; font-weight: 800; letter-spacing: -.03em; }
+.big-stat .sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+/* PROGRESS BAR */
+.prog-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+.prog-track {
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.prog-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width .5s cubic-bezier(.4,0,.2,1), background .3s;
+}
+
+/* SCENARIO GRID */
+.sc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.sc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  transition: transform .2s, border-color .2s;
+}
+.sc-card:hover { transform: translateY(-2px); border-color: var(--border2); }
+.sc-card.bad { border-color: rgba(239,68,68,.25); }
+.sc-card.avg { border-color: rgba(59,130,246,.35); }
+.sc-card.good { border-color: rgba(34,197,94,.25); }
+.sc-card.highlight { border-color: var(--accent); background: rgba(163,230,53,.04); }
+.sc-tag {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.sc-cars { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.sc-rev { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+.sc-row { display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0; }
+.sc-row .k { color: var(--muted); }
+.sc-row .v { font-family: 'DM Mono', monospace; font-weight: 500; }
+.sc-note { font-size: 10px; color: var(--muted2); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+
+/* SLIDERS */
+.slider-group { display: flex; flex-direction: column; gap: 14px; }
+.slider-row { display: grid; grid-template-columns: 180px 1fr 80px; align-items: center; gap: 12px; }
+.slider-row label { font-size: 12px; color: var(--muted); }
+.slider-row input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border2);
+  border-radius: 2px;
+  outline: none;
+}
+.slider-row input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+.slider-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  text-align: right;
+}
+
+/* CHART */
+.chart-wrap { position: relative; height: 220px; margin-top: 8px; }
+
+/* MIXED MONTH */
+.mixed-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.mixed-row:last-child { border-bottom: none; }
+
+/* FOOTER */
+.footer {
+  padding: 20px 40px;
+  border-top: 1px solid var(--border);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--muted2);
+  text-align: center;
+  letter-spacing: .05em;
+}
+
+/* COLORS */
+.c-green { color: var(--green); }
+.c-red { color: var(--red); }
+.c-amber { color: var(--amber); }
+.c-blue { color: var(--blue); }
+.c-accent { color: var(--accent); }
+
+/* STARTUP ITEM */
+.su-item {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.su-item:last-child { border-bottom: none; }
+.su-item .si-name { font-weight: 500; }
+.su-item .si-desc { font-size: 11px; color: var(--muted); }
+.su-item .si-amt { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; text-align: right; }
+.su-item.total-row { background: var(--surface2); }
+
+@media (max-width: 768px) {
+  .header, .content, .tabs { padding-left: 20px; padding-right: 20px; }
+  .metrics { grid-template-columns: 1fr 1fr; }
+  .sc-grid { grid-template-columns: 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+  .slider-row { grid-template-columns: 140px 1fr 60px; }
+  .su-item { grid-template-columns: 1fr auto; }
+  .su-item .si-desc { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Business Plan — Live Dashboard</div>
+  <h1>Car Wash <span>Business</span><br>Sulaymaniyah</h1>
+  <div class="header-meta">
+    <span>5 Staff Members</span>
+    <span>Assembly-Line Model</span>
+    <span>8,350,000 IQD Startup</span>
+    <span>6,500,000 IQD/month Costs</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview')">Overview</div>
+  <div class="tab" onclick="showTab('scenarios')">All Scenarios</div>
+  <div class="tab" onclick="showTab('costs')">Costs & Startup</div>
+  <div class="tab" onclick="showTab('calc')">Calculator</div>
+</div>
+
+<div class="content">
+
+  <!-- OVERVIEW -->
+  <div class="pane active" id="pane-overview">
+    <div class="sec-label">Monthly snapshot — target: 20 sedan + 10 SUV/day</div>
+    <div class="metrics">
+      <div class="mcard"><div class="ml">Daily Revenue</div><div class="mv c-accent">350,000</div><div class="ms">IQD / day</div></div>
+      <div class="mcard"><div class="ml">Monthly Revenue</div><div class="mv">9,100,000</div><div class="ms">IQD / month</div></div>
+      <div class="mcard"><div class="ml">Monthly Profit</div><div class="mv c-green">+2,600,000</div><div class="ms">After all costs</div></div>
+      <div class="mcard"><div class="ml">Payback Period</div><div class="mv c-green">4 months</div><div class="ms">On 8,350,000 startup</div></div>
+    </div>
+
+    <div class="sec-label">Monthly costs</div>
+    <div class="card">
+      <div class="trow"><span class="name">4 workers × 700,000 IQD</span><span class="val c-red">−2,800,000</span></div>
+      <div class="trow"><span class="name">1 senior worker × 1,000,000 IQD</span><span class="val c-red">−1,000,000</span></div>
+      <div class="trow"><span class="name">Rent (free month 1, then 1,500,000)</span><span class="val c-red">−1,500,000</span></div>
+      <div class="trow"><span class="name">Electricity (24/7)</span><span class="val c-red">−300,000</span></div>
+      <div class="trow"><span class="name">Water</span><span class="val c-red">−250,000</span></div>
+      <div class="trow"><span class="name">Soap, chemicals & supplies</span><span class="val c-red">−500,000</span></div>
+      <div class="trow"><span class="name">Maintenance</span><span class="val c-red">−150,000</span></div>
+      <div class="trow total"><span class="name">Total Monthly Costs</span><span class="val c-red">−6,500,000 IQD</span></div>
+    </div>
+
+    <div class="sec-label">Profit & payback at target volume</div>
+    <div class="two-col">
+      <div class="big-stat">
+        <div class="lbl">Monthly Net Profit</div>
+        <div class="val c-green">+2,600,000</div>
+        <div class="sub">IQD / month · 29% margin</div>
+      </div>
+      <div class="big-stat">
+        <div class="lbl">Payback Period</div>
+        <div class="val c-green">4 months</div>
+        <div class="sub">to recover 8,350,000 IQD startup</div>
+      </div>
+    </div>
+
+    <div class="sec-label">Break-even progress at target</div>
+    <div class="card card-inner" style="padding:20px;">
+      <div class="prog-label">
+        <span>Need 250,000 IQD/day to break even</span>
+        <span class="c-green">You: 350,000 IQD/day (140%)</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" style="width:100%;background:var(--green);"></div></div>
+    </div>
+  </div>
+
+  <!-- SCENARIOS -->
+  <div class="pane" id="pane-scenarios">
+    <div class="sec-label">Bad days — slow traffic</div>
+    <div class="sc-grid">
+      <div class="sc-card bad">
+        <div class="sc-tag" style="background:rgba(239,68,68,.12);color:#EF4444;">Very Bad Day</div>
+        <div class="sc-cars">5 sedan + 3 SUV = 8 cars</div>
+        <div class="sc-rev c-red">95,000 IQD/day</div>
+        <div class="sc-row"><span class="k">Monthly revenue</span><span class="v">2,470,000</span></div>
+        <div class="sc-row"><span class="k">Monthly costs</span><span class="v">6,500,000</span></div>
+        <div class="sc-row"><span class="k" style="color:var(--text);font-weight:600;">Monthly loss</span><span class="v c-red">−4,030,000</span></div>
+        <div class="sc-note">Opening week. Normal — your buffer covers it.</div>
+      </div>
+      <div class="sc-card bad">
+        <div class="sc-tag" style="background:rgba(239,68,68,.12);color:#EF4444;">Bad Day</div>
+        <div class="sc-cars">10 sedan + 5 SUV = 15 cars</div>
+        <div class="sc-rev c-red">175,000 IQD/day</div>
+        <div class="sc-row"><span class="k">Monthly revenue</span><span class="v">4,550,000</span></div>
+        <div class="sc-row"><span class="k">Monthly costs</span><span class="v">6,500,000</span></div>
+        <div class="sc-row"><span class="k" style="color:var(--text);font-weight:600;">Monthly loss</span><span class="v c-red">−1,950,000</span></div>
+        <div class="sc-note">Rainy or holiday. Safety buffer absorbs it.</div>
+      </div>
+      <div class="sc-card bad">
+        <div class="sc-tag" style="background:rgba(245,158,11,.12);color:#F59E0B;">Slow Day</div>
+        <div class="sc-cars">14 sedan + 7 SUV = 21 cars</div>
+        <div class="sc-rev c-amber">245,000 IQD/day</div>
+        <div class="sc-row"><span class="k">Monthly revenue</span><span class="v">6,370,000</span></div>
+        <div class="sc-row"><span class="k">Monthly costs</span><span class="v">6,500,000</span></div>
+        <div class="sc-row"><span class="k" style="color:var(--text);font-weight:600;">Almost break-even</span><span class="v c-amber">−130,000</span></div>
+        <div class="sc-note">Just below break-even. Barely any loss.</div>
+      </div>
+    </div>
+
+    <div class="sec-label" style="margin-top:24px;">Average days — your normal week</div>
+    <div class="sc-grid">
+      <div class="sc-card avg">
+        <div class="sc-tag" style="background:rgba(59,130,246,.12);color:#3B82F6;">Average Low</div>
+        <div class="sc-cars">16 sedan + 8 SUV = 24 cars</div>
+        <div class="sc-rev c-blue">280,000 IQD/day</div>
+        <div class="sc-row"><span class="k">Monthly revenue</span><span class="v">7,280,000</span></div>
+        <div class="sc-row"><span class="k">Monthly costs</span><span class="v">6,500,000</span></div>
+        <div class="sc-row"><span class="k" style="color:var(--text);font-weight:600;">Monthly profit</span><span class="v c-green">+780,000</span></div>
+        <div class="sc-note">Payback in ~11 months. Small but positive.</div>
+      </div>
+      <div class="sc-card highlight">
+        <div class="sc-tag" style="background:rgba(163,230,53,.15);color:#A3E635;">⭐ Target</div>
+        <div class="sc-cars">20 sedan + 10 SUV = 30 cars</div>
+        <div class="sc-rev c-accent">350,000 IQD/day</div>
+        <div class="sc-row"><span class="k">Monthly revenue</span><span class="v">9,100,000</span></div>
+        <div class="sc-row"><span class="k">Monthly costs</span><span class="v">6,500,000</span></div>
+        <div class="sc-row"><span class="k" style="color:var(--text);font-weight:600;">Monthly profit</span><span class="v c-green">+2,600,000</span></div>
+        <div class="sc-note">Payback in 4 months. This is the goal.</div>
+      </div>
+      <div class="sc-card avg">
+        <div class="sc-tag" style="background:rgba(59,130,246,.12);color:#3B82F6;">Average High</div>
+        <div class="sc-cars">25 sedan + 12 SUV = 37 cars</div>
+        <div class="sc-rev c-green">430,000 IQD/day</div>
+        <div class="sc-row"><span class="k">Monthly revenue</span><span class="v">11,180,000</span></div>
+        <div class="sc-row"><span class="k">Monthly costs</span><span class="v">6,500,000</span></div>
+        <div class="sc-row"><span class="k" style="color:var(--text);font-weight:600;">Monthly profit</span><span class="v c-green">+4,680,000</span></div>
+        <div class="sc-note">Payback in ~2 months. Very achievable.</div>
+      </div>
+    </div>
+
+    <div class="sec-label" style="margin-top:24px;">Good days — when business is booming</div>
+    <div class="sc-grid">
+      <div class="sc-card good">
+        <div class="sc-tag" style="background:rgba(34,197,94,.1);color:#22C55E;">Good Day</div>
+        <div class="sc-cars">30 sedan + 15 SUV = 45 cars</div>
+        <div class="sc-rev c-green">525,000 IQD/day</div>
+        <div class="sc-row"><span class="k">Monthly revenue</span><span class="v">13,650,000</span></div>
+        <div class="sc-row"><span class="k">Monthly costs</span><span class="v">6,500,000</span></div>
+        <div class="sc-row"><span class="k" style="color:var(--text);font-weight:600;">Monthly profit</span><span class="v c-green">+7,150,000</span></div>
+        <div class="sc-note">Friday level traffic. Very realistic.</div>
+      </div>
+      <div class="sc-card good">
+        <div class="sc-tag" style="background:rgba(34,197,94,.1);color:#22C55E;">Very Good Day</div>
+        <div class="sc-cars">35 sedan + 18 SUV = 53 cars</div>
+        <div class="sc-rev c-green">620,000 IQD/day</div>
+        <div class="sc-row"><span class="k">Monthly revenue</span><span class="v">16,120,000</span></div>
+        <div class="sc-row"><span class="k">Monthly costs</span><span class="v">6,500,000</span></div>
+        <div class="sc-row"><span class="k" style="color:var(--text);font-weight:600;">Monthly profit</span><span class="v c-green">+9,620,000</span></div>
+        <div class="sc-note">After rain or holiday season peak.</div>
+      </div>
+      <div class="sc-card good">
+        <div class="sc-tag" style="background:rgba(34,197,94,.1);color:#22C55E;">Best Case</div>
+        <div class="sc-cars">40 sedan + 20 SUV = 60 cars</div>
+        <div class="sc-rev c-green">700,000 IQD/day</div>
+        <div class="sc-row"><span class="k">Monthly revenue</span><span class="v">18,200,000</span></div>
+        <div class="sc-row"><span class="k">Monthly costs</span><span class="v">6,500,000</span></div>
+        <div class="sc-row"><span class="k" style="color:var(--text);font-weight:600;">Monthly profit</span><span class="v c-green">+11,700,000</span></div>
+        <div class="sc-note">Full capacity. 5 staff at max throughput.</div>
+      </div>
+    </div>
+
+    <div class="sec-label" style="margin-top:24px;">Realistic mixed month (8 bad + 10 average + 8 good days)</div>
+    <div class="card">
+      <div class="mixed-row"><span style="color:var(--muted);">8 bad days × 175,000 IQD</span><span class="c-red" style="font-family:'DM Mono',monospace;">1,400,000 IQD</span></div>
+      <div class="mixed-row"><span style="color:var(--muted);">10 average days × 350,000 IQD</span><span style="font-family:'DM Mono',monospace;">3,500,000 IQD</span></div>
+      <div class="mixed-row"><span style="color:var(--muted);">8 good days × 525,000 IQD</span><span class="c-green" style="font-family:'DM Mono',monospace;">4,200,000 IQD</span></div>
+      <div class="mixed-row" style="border-top:1px solid var(--border2);"><span style="font-weight:600;">Total monthly revenue</span><span style="font-family:'DM Mono',monospace;font-weight:600;">9,100,000 IQD</span></div>
+      <div class="mixed-row"><span style="font-weight:600;">Minus all costs</span><span class="c-red" style="font-family:'DM Mono',monospace;font-weight:600;">−6,500,000 IQD</span></div>
+      <div class="mixed-row" style="background:rgba(163,230,53,.04);border-top:1px solid rgba(163,230,53,.2);"><span style="font-weight:700;font-size:15px;">Realistic monthly profit</span><span class="c-accent" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">+2,600,000 IQD</span></div>
+    </div>
+  </div>
+
+  <!-- COSTS & STARTUP -->
+  <div class="pane" id="pane-costs">
+    <div class="sec-label">Worker salaries — monthly</div>
+    <div class="card">
+      <div class="trow"><span class="name">Worker 1 — Interior vacuum & cleaning</span><span class="val">700,000 IQD</span></div>
+      <div class="trow"><span class="name">Worker 2 — Foam application</span><span class="val">700,000 IQD</span></div>
+      <div class="trow"><span class="name">Worker 3 — Pressure wash & rinse</span><span class="val">700,000 IQD</span></div>
+      <div class="trow"><span class="name">Worker 4 — Dry & wipe down</span><span class="val">700,000 IQD</span></div>
+      <div class="trow"><span class="name">Worker 5 — Senior / final detail & supervisor</span><span class="val c-accent">1,000,000 IQD</span></div>
+      <div class="trow total"><span class="name">Total Salaries</span><span class="val c-red">3,800,000 IQD/month</span></div>
+    </div>
+
+    <div class="sec-label">Equipment — one-time purchase</div>
+    <div class="card">
+      <div class="trow"><span class="name">Pressure washer × 1</span><span class="val">350,000 IQD</span></div>
+      <div class="trow"><span class="name">Vacuum cleaner × 1</span><span class="val">300,000 IQD</span></div>
+      <div class="trow"><span class="name">Foam maker can × 1</span><span class="val">200,000 IQD</span></div>
+      <div class="trow"><span class="name">Starter supplies — soap, microfiber, brushes</span><span class="val">500,000 IQD</span></div>
+      <div class="trow"><span class="name">Signage & shop setup</span><span class="val">500,000 IQD</span></div>
+      <div class="trow total"><span class="name">Equipment Total</span><span class="val">1,850,000 IQD</span></div>
+    </div>
+
+    <div class="sec-label">Full startup cost breakdown</div>
+    <div class="card">
+      <div class="su-item">
+        <div><div class="si-name">All equipment</div></div>
+        <div class="si-desc">Pressure washer + vacuum + foam maker + supplies + sign</div>
+        <div class="si-amt">1,850,000 IQD</div>
+      </div>
+      <div class="su-item">
+        <div><div class="si-name">Rent — month 1</div></div>
+        <div class="si-desc">Landlord agreed to free first month</div>
+        <div class="si-amt c-green">FREE</div>
+      </div>
+      <div class="su-item">
+        <div><div class="si-name">Safety buffer</div></div>
+        <div class="si-desc">1 full month of costs — cover salaries while building customers</div>
+        <div class="si-amt">6,500,000 IQD</div>
+      </div>
+      <div class="su-item total-row">
+        <div><div class="si-name" style="font-size:14px;font-weight:700;">Total to Open</div><div class="si-desc">≈ $6,500 USD</div></div>
+        <div class="si-desc"></div>
+        <div class="si-amt c-amber" style="font-size:16px;font-weight:700;">8,350,000 IQD</div>
+      </div>
+    </div>
+
+    <div class="sec-label">Cost efficiency — per car washed</div>
+    <div class="metrics">
+      <div class="mcard"><div class="ml">Cost/car at 20 cars/day</div><div class="mv c-amber">12,500</div><div class="ms">IQD — you lose on sedans</div></div>
+      <div class="mcard"><div class="ml">Cost/car at 30 cars/day</div><div class="mv c-accent">8,333</div><div class="ms">IQD — good margin now</div></div>
+      <div class="mcard"><div class="ml">Profit/sedan at target</div><div class="mv c-green">+1,667</div><div class="ms">IQD per sedan</div></div>
+      <div class="mcard"><div class="ml">Profit/SUV at target</div><div class="mv c-green">+6,667</div><div class="ms">IQD per SUV</div></div>
+    </div>
+  </div>
+
+  <!-- CALCULATOR -->
+  <div class="pane" id="pane-calc">
+    <div class="sec-label">Build your own scenario</div>
+    <div class="card card-inner">
+      <div class="slider-group">
+        <div class="slider-row">
+          <label>Sedans / day (10,000 IQD)</label>
+          <input type="range" min="0" max="50" value="20" id="sedans" oninput="update()">
+          <div class="slider-val" id="so">20 cars</div>
+        </div>
+        <div class="slider-row">
+          <label>SUVs / day (15,000 IQD)</label>
+          <input type="range" min="0" max="30" value="10" id="suvs" oninput="update()">
+          <div class="slider-val" id="uo">10 cars</div>
+        </div>
+        <div class="slider-row">
+          <label>Working days / month</label>
+          <input type="range" min="20" max="30" value="26" id="days" oninput="update()">
+          <div class="slider-val" id="do">26 days</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-label">Results</div>
+    <div class="metrics" id="calc-metrics"></div>
+
+    <div class="two-col" style="margin-top:12px;">
+      <div class="big-stat">
+        <div class="lbl">Monthly Net Profit</div>
+        <div class="val" id="calc-profit">—</div>
+        <div class="sub" id="calc-margin">—</div>
+      </div>
+      <div class="big-stat">
+        <div class="lbl">Payback Period</div>
+        <div class="val" id="calc-payback">—</div>
+        <div class="sub">on 8,350,000 IQD startup</div>
+      </div>
+    </div>
+
+    <div class="sec-label" style="margin-top:16px;">Break-even progress</div>
+    <div class="card card-inner">
+      <div class="prog-label">
+        <span id="be-left">—</span>
+        <span id="be-right">—</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="be-fill" style="width:0%;"></div></div>
+    </div>
+
+    <div class="sec-label">Revenue vs costs chart</div>
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Car Wash Business Dashboard · Sulaymaniyah, Iraq · All amounts in IQD · Built with Claude
+</div>
+
+<script>
+const FIXED = 6500000, STARTUP = 8350000;
+const fmt = n => Math.round(n).toLocaleString();
+let chart;
+
+function showTab(id) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('pane-' + id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'calc') { update(); if (!chart) initChart(); }
+}
+
+function update() {
+  const s = +document.getElementById('sedans').value;
+  const u = +document.getElementById('suvs').value;
+  const d = +document.getElementById('days').value;
+  document.getElementById('so').textContent = s + ' cars';
+  document.getElementById('uo').textContent = u + ' cars';
+  document.getElementById('do').textContent = d + ' days';
+
+  const daily = s * 10000 + u * 15000;
+  const monthly = daily * d;
+  const profit = monthly - FIXED;
+
+  document.getElementById('calc-metrics').innerHTML = `
+    <div class="mcard"><div class="ml">Daily Revenue</div><div class="mv" style="color:var(--accent)">${fmt(daily)}</div><div class="ms">IQD / day</div></div>
+    <div class="mcard"><div class="ml">Monthly Revenue</div><div class="mv">${fmt(monthly)}</div><div class="ms">IQD</div></div>
+    <div class="mcard"><div class="ml">Cars / Day</div><div class="mv">${s+u}</div><div class="ms">${s} sedan · ${u} SUV</div></div>
+    <div class="mcard"><div class="ml">Yearly Profit</div><div class="mv">${profit>0?fmt(profit*12/1e6).slice(0,5)+'M':'—'}</div><div class="ms">IQD / year</div></div>
+  `;
+
+  const pv = document.getElementById('calc-profit');
+  if (profit >= 0) {
+    pv.textContent = '+' + fmt(profit); pv.style.color = 'var(--green)';
+    document.getElementById('calc-margin').textContent = 'Profit margin: ' + Math.round(profit/monthly*100) + '%';
+  } else {
+    pv.textContent = fmt(profit); pv.style.color = 'var(--red)';
+    document.getElementById('calc-margin').textContent = 'Below break-even';
+  }
+
+  const pb = document.getElementById('calc-payback');
+  if (profit > 0) {
+    const mo = STARTUP / profit;
+    pb.textContent = mo < 12 ? Math.ceil(mo) + ' months' : (mo/12).toFixed(1) + ' years';
+    pb.style.color = 'var(--green)';
+  } else { pb.textContent = '∞'; pb.style.color = 'var(--red)'; }
+
+  const be = FIXED / d;
+  const pct = Math.min(120, Math.round(daily / be * 100));
+  const fill = document.getElementById('be-fill');
+  fill.style.width = Math.min(100, pct) + '%';
+  fill.style.background = pct >= 100 ? 'var(--green)' : pct >= 70 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('be-left').textContent = 'Break-even: ' + fmt(Math.round(be)) + ' IQD/day';
+  document.getElementById('be-right').textContent = 'You: ' + fmt(daily) + ' IQD (' + pct + '%)';
+  document.getElementById('be-right').style.color = pct >= 100 ? 'var(--green)' : 'var(--amber)';
+
+  if (chart) {
+    chart.data.datasets[0].data = [monthly, FIXED, Math.max(0, profit)];
+    chart.update();
+  }
+}
+
+function initChart() {
+  const ctx = document.getElementById('chart');
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Monthly Revenue', 'Fixed Costs', 'Net Profit'],
+      datasets: [{
+        data: [0, FIXED, 0],
+        backgroundColor: ['rgba(163,230,53,.8)', 'rgba(239,68,68,.7)', 'rgba(59,130,246,.8)'],
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => '  ' + fmt(c.parsed.y) + ' IQD' },
+          backgroundColor: '#1B1E1C', borderColor: '#2E322F', borderWidth: 1,
+          titleColor: '#F1F5F2', bodyColor: '#6B7068' }
+      },
+      scales: {
+        y: {
+          ticks: { callback: v => (v/1e6).toFixed(1)+'M', color: '#6B7068', font:{size:11} },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          border: { display: false }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#6B7068', font:{size:11} },
+          border: { display: false }
+        }
+      }
+    }
+  });
+  update();
+}
+</script>
+</body>
+</html>
